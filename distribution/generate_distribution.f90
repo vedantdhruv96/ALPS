@@ -176,8 +176,16 @@ program generate_distribution
     case (0) ! The code will use distribution_analyt, no normalisation necessary
       norm=1.d0
 
-      pperp_max = maxPperp(is)
-      ppar_max = maxPpar(is)
+      ! Add this entire block to enable autoscaling for your custom function
+      if (autoscale(is)) then
+          ! New Jüttner scaling logic
+          pperp_max = sqrt(maxP*maxP*tau(is) + (tau(is)-ms(is)*ms(is))/(vA*vA)) * sqrt(alph(is))
+          ppar_max  = sqrt(maxP*maxP*tau(is) + (tau(is)-ms(is)*ms(is))/(vA*vA))
+      else
+          pperp_max = maxPperp(is)
+          ppar_max = maxPpar(is)
+      endif
+
 
 
 	  case (1) ! bi-Maxwellian
@@ -275,7 +283,8 @@ program generate_distribution
           case (0) ! use function from distribution_analyt
 
             ppar_C=cmplx(ppar,0.d0,kind(1.d0))
-            f0 = real(distribution_analyt(is,pperp,ppar_C))
+            ! f0 = real(distribution_analyt(is, pperp, ppar_C, ms(is), beta, tau(is), alph(is)))
+            f0 = real(distribution_analyt(is, pperp, ppar_C))
 
 	        case (1) ! bi-Maxwellian
         	   f0 =  exp( -(( (ppar-p_drift(is))**2.d0)/&
